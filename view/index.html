@@ -1,0 +1,424 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlueDiary — Personal Diary</title>
+  <style>
+    :root{
+      --bg1:#89f7fe; --bg2:#66a6ff; --glass:rgba(255,255,255,.12);
+      --text:#f7fbff; --muted:#e6f2ff; --accent:#bfe3ff; --primary:#4da3ff; --primary-strong:#2e80ff;
+      --success:#2ecc71; --danger:#ff5c5c; --warning:#ffc107; --shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,255,255,.2), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      color:var(--text); overflow:hidden; letter-spacing:.2px;
+    }
+    /* Layout */
+    .app{display:grid; grid-template-rows:64px 1fr; height:100%}
+    header{
+      display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04));
+      backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.18);
+      box-shadow: var(--shadow);
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:20px}
+    .brand .dot{width:12px; height:12px; border-radius:999px; background:var(--primary); box-shadow:0 0 16px var(--primary)}
+    .actions{display:flex; align-items:center; gap:10px}
+    .btn{border:none; outline:none; padding:10px 14px; border-radius:14px; cursor:pointer; font-weight:600; color:#0b2540;
+      background: linear-gradient(180deg, #e9f5ff, #cfeaff); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 6px 16px rgba(0,0,0,.18);
+      transition: transform .18s ease, box-shadow .18s ease, filter .2s ease;
+    }
+    .btn:hover{transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 10px 22px rgba(0,0,0,.25)}
+    .btn:active{transform: translateY(0); filter:saturate(1.1)}
+    .btn.primary{background: linear-gradient(180deg, var(--accent), #9ed0ff); color:#0d2a4a}
+    .btn.danger{background:linear-gradient(180deg, #ffd5d5, #ffafaf)}
+    .btn.ghost{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,.25)}main{position:relative; overflow:hidden}
+.view{position:absolute; inset:0; padding:18px; overflow:auto; opacity:0; pointer-events:none; transform:translateY(10px) scale(.98);
+  transition: opacity .28s ease, transform .28s ease;}
+.view.active{opacity:1; transform:translateY(0) scale(1); pointer-events:auto}
+
+/* Dashboard */
+.dash-toolbar{display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap}
+.search{flex:1; min-width:220px; position:relative}
+.input{
+  width:100%; padding:12px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.12); color:var(--text); outline:none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+  transition: box-shadow .2s ease, background .2s ease;
+}
+.input::placeholder{color:#eaf4ffb3}
+.input:focus{box-shadow:0 0 0 3px rgba(157,210,255,.35); background: rgba(255,255,255,.16)}
+
+.grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:14px; padding-bottom:60px}
+.card{background:var(--glass); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:16px; backdrop-filter: blur(12px);
+  box-shadow: var(--shadow); position:relative; overflow:hidden; transform-origin: 50% 60%;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.card:hover{transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 42px rgba(0,0,0,.30); border-color: rgba(255,255,255,.45)}
+.card h3{margin:0 0 6px 0; font-size:17px}
+.meta{font-size:12px; opacity:.9; color:#eaf4ff}
+.preview{margin:10px 0 12px 0; font-size:13px; color:#eef7ff; opacity:.96; min-height:48px}
+.tags{display:flex; gap:8px; align-items:center}
+.tag{font-size:11px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25)}
+.card .row{display:flex; align-items:center; justify-content:space-between; gap:8px}
+
+/* Editor */
+.editor-wrap{display:grid; grid-template-columns: 320px 1fr; gap:16px; height:100%}
+.panel{background:var(--glass); border:1px solid rgba(255,255,255,.25); border-radius:18px; padding:16px; backdrop-filter: blur(12px); box-shadow: var(--shadow);}
+.title-input{width:100%; font-size:20px; font-weight:700; color:var(--text); background:transparent; border:none; outline:none; padding:6px 8px; border-bottom:1px dashed rgba(255,255,255,.35)}
+.check{display:flex; align-items:center; gap:10px; margin-top:10px}
+.editor{height:calc(100% - 0px); display:flex; flex-direction:column}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px}
+.editor-area{flex:1; padding:16px; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.25); border-radius:16px; outline:none; color:var(--text); font-size:15px; line-height:1.6; overflow:auto}
+.muted{font-size:12px; opacity:.85}
+
+/* Floating + badges */
+.fab{position:fixed; right:18px; bottom:18px; z-index:10}
+.badge{font-size:11px; opacity:.9}
+
+/* Modal */
+.modal-backdrop{position:fixed; inset:0; background:rgba(7,20,40,.55); backdrop-filter: blur(4px); display:none; align-items:center; justify-content:center; z-index:50}
+.modal{width:min(92vw, 440px); background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.12)); border:1px solid rgba(255,255,255,.35); border-radius:18px; box-shadow: var(--shadow); padding:18px}
+.modal h4{margin:0 0 12px 0}
+.modal-row{display:flex; gap:8px; align-items:center}
+.modal-backdrop.show{display:flex; animation: fadeIn .18s ease both}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0; transform: translateY(8px) scale(.98)} to{opacity:1; transform:none}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 rgba(255,255,255,0)} 50%{box-shadow:0 0 30px rgba(157,210,255,.55)}}
+.glow{animation:pulseGlow 2.4s ease-in-out infinite}
+
+/* Responsive */
+@media (max-width: 980px){ .editor-wrap{grid-template-columns: 1fr} }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand"><span class="dot"></span> BlueDiary</div>
+      <div class="actions">
+        <button class="btn ghost" id="btn-dashboard">Dashboard</button>
+        <button class="btn primary glow" id="btn-new">+ New Note</button>
+      </div>
+    </header><main>
+  <!-- DASHBOARD VIEW -->
+  <section id="view-dashboard" class="view active">
+    <div class="dash-toolbar">
+      <div class="search"><input id="search" class="input" placeholder="Search notes by title or content..." /></div>
+      <select id="sort" class="input" style="max-width:220px">
+        <option value="updatedAt:desc">Last edited (newest)</option>
+        <option value="createdAt:desc">Created (newest)</option>
+        <option value="title:asc">Title (A–Z)</option>
+        <option value="title:desc">Title (Z–A)</option>
+      </select>
+      <button class="btn" id="btn-export">Export JSON</button>
+      <label class="btn" for="importFile">Import JSON</label>
+      <input id="importFile" type="file" accept="application/json" style="display:none" />
+    </div>
+    <div id="grid" class="grid"></div>
+  </section>
+
+  <!-- EDITOR VIEW -->
+  <section id="view-editor" class="view">
+    <div class="editor-wrap">
+      <aside class="panel">
+        <input id="note-title" class="title-input" placeholder="Untitled note" />
+        <div class="check">
+          <input type="checkbox" id="is-secret" />
+          <label for="is-secret">Secret note (requires password)</label>
+        </div>
+        <div id="secret-row" class="modal-row" style="margin-top:10px; display:none">
+          <input id="secret-pass" class="input" type="password" placeholder="Set / Enter password" />
+        </div>
+
+        <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn primary" id="btn-save">Save</button>
+          <button class="btn" id="btn-read">▶ Read</button>
+          <button class="btn danger" id="btn-delete">Delete</button>
+          <button class="btn ghost" id="btn-back">Back</button>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="muted" id="autosave-status">Autosave: idle</div>
+          <div class="muted" id="note-meta"></div>
+        </div>
+      </aside>
+
+      <section class="editor">
+        <div class="toolbar">
+          <button class="btn" data-cmd="bold"><b>B</b></button>
+          <button class="btn" data-cmd="italic"><i>I</i></button>
+          <button class="btn" data-cmd="underline"><u>U</u></button>
+          <button class="btn" data-cmd="insertUnorderedList">• List</button>
+          <button class="btn" data-cmd="formatBlock" data-arg="h2">H2</button>
+          <button class="btn" data-cmd="formatBlock" data-arg="h3">H3</button>
+          <button class="btn" id="btn-clear">Clear</button>
+        </div>
+        <div id="editor" class="editor-area" contenteditable="true" spellcheck="true" placeholder="Start writing..."></div>
+      </section>
+    </div>
+  </section>
+</main>
+
+  </div>  <!-- Password Modal for opening secret notes -->  <div id="pw-modal" class="modal-backdrop">
+    <div class="modal">
+      <h4>Enter password to unlock</h4>
+      <input id="pw-input" class="input" type="password" placeholder="Password" />
+      <div class="modal-row" style="margin-top:12px; justify-content:flex-end">
+        <button class="btn ghost" id="pw-cancel">Cancel</button>
+        <button class="btn primary" id="pw-ok">Unlock</button>
+      </div>
+    </div>
+  </div>  <script>
+    // ==================== CONFIG ====================
+    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+      ? 'http://localhost:3000/api/notes'
+      : '/api/notes';
+
+    // ==================== STATE ====================
+    let notes = []; // cache for dashboard
+    let currentNote = null; // { _id, title, content, isSecret, ... }
+    let autosaveTimer = null;
+    let isReading = false;
+
+    // ==================== UTILS ====================
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const fmt = (ts) => ts ? new Date(ts).toLocaleString() : '';
+    const debounce = (fn, ms=500) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms) } };
+
+    function show(viewId){ $$('.view').forEach(v=>v.classList.remove('active')); $(viewId).classList.add('active') }
+    function toast(msg){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.position='fixed'; t.style.bottom='90px'; t.style.right='18px'; t.style.padding='10px 14px';
+      t.style.background='rgba(0,0,0,.55)'; t.style.color='#fff'; t.style.borderRadius='12px'; t.style.backdropFilter='blur(4px)';
+      t.style.boxShadow='var(--shadow)'; t.style.zIndex=60; t.style.opacity=0; t.style.transition='opacity .2s ease, transform .2s ease';
+      document.body.appendChild(t); requestAnimationFrame(()=>{ t.style.opacity=1; t.style.transform='translateY(-4px)' })
+      setTimeout(()=>{ t.style.opacity=0; t.style.transform='translateY(0)'; setTimeout(()=>t.remove(),200)}, 1800);
+    }
+
+    async function api(path='', options={}){
+      const res = await fetch(`${API_BASE}${path}`, { headers:{'Content-Type':'application/json'}, ...options });
+      if(!res.ok){ const err = await res.json().catch(()=>({message:res.statusText})); throw new Error(err.message||'Request failed'); }
+      return res.json();
+    }
+
+    // ==================== DASHBOARD ====================
+    async function loadNotes(){
+      notes = await api('');
+      renderGrid();
+    }
+
+    function renderGrid(){
+      const q = $('#search').value.trim().toLowerCase();
+      const [key, dir] = $('#sort').value.split(':');
+      const filtered = notes
+        .filter(n => (n.title||'').toLowerCase().includes(q) || (n.isSecret ? false : (n.content||'').toLowerCase().includes(q)))
+        .sort((a,b)=>{
+          if(key==='title') return dir==='asc' ? (a.title||'').localeCompare(b.title||'') : (b.title||'').localeCompare(a.title||'');
+          return dir==='asc' ? new Date(a[key]) - new Date(b[key]) : new Date(b[key]) - new Date(a[key]);
+        });
+      const grid = $('#grid');
+      grid.innerHTML = '';
+      filtered.forEach(n=>{
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <div class="row">
+            <h3>${escapeHtml(n.title||'Untitled')}</h3>
+            ${n.isSecret ? '<span class="tag">🔒 Secret</span>' : ''}
+          </div>
+          <div class="meta">Created: ${fmt(n.createdAt)} · Edited: ${fmt(n.updatedAt)}</div>
+          <div class="preview">${n.isSecret ? '<i>Content hidden</i>' : escapeHtml((n.content||'').slice(0,160))}</div>
+          <div class="row">
+            <div class="tags">
+              <span class="tag">${wordCount(n)} words</span>
+            </div>
+            <div>
+              <button class="btn" data-open="${n._id}">Open</button>
+              <button class="btn danger" data-del="${n._id}">Delete</button>
+            </div>
+          </div>`;
+        grid.appendChild(el);
+      });
+    }
+
+    function wordCount(n){
+      const text = n.isSecret ? '' : (n.content||'');
+      return (text.trim().match(/\S+/g)||[]).length;
+    }
+
+    function escapeHtml(s=''){
+      return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+
+    // ==================== MODALS ====================
+    const pwModal = $('#pw-modal');
+    const pwInput = $('#pw-input');
+    let pendingOpenId = null; // note id waiting for password
+    function openPwModal(){ pwModal.classList.add('show'); pwInput.value=''; pwInput.focus(); }
+    function closePwModal(){ pwModal.classList.remove('show'); pendingOpenId=null; }
+
+    $('#pw-cancel').onclick = closePwModal;
+    $('#pw-ok').onclick = async ()=>{
+      const pass = pwInput.value;
+      if(!pendingOpenId) return;
+      try{
+        const note = await api(`/${pendingOpenId}`, { method:'POST', body: JSON.stringify({ password: pass })});
+        currentNote = note; // decrypted content returned by backend
+        openEditor(note);
+        closePwModal();
+      }catch(e){ toast('Incorrect password'); pwInput.select(); }
+    }
+
+    // ==================== EDITOR ====================
+    function openEditor(note){
+      show('#view-editor');
+      currentNote = note;
+      $('#note-title').value = note.title || '';
+      $('#is-secret').checked = !!note.isSecret;
+      $('#secret-row').style.display = note.isSecret ? 'flex' : 'none';
+      $('#secret-pass').value = '';
+      $('#editor').innerHTML = note.isSecret ? (note.content||'') : (note.content || '');
+      $('#note-meta').textContent = `Created ${fmt(note.createdAt)} · Last edited ${fmt(note.updatedAt)}`;
+      $('#autosave-status').textContent = 'Autosave: armed';
+      armAutosave();
+    }
+
+    function newEditor(){
+      show('#view-editor');
+      currentNote = { _id:null, title:'', content:'', isSecret:false };
+      $('#note-title').value=''; $('#is-secret').checked=false; $('#secret-row').style.display='none'; $('#secret-pass').value='';
+      $('#editor').innerHTML=''; $('#note-meta').textContent='New note'; $('#autosave-status').textContent='Autosave: armed';
+      armAutosave();
+    }
+
+    function armAutosave(){
+      clearInterval(autosaveTimer);
+      autosaveTimer = setInterval(()=>{
+        if(!currentNote) return;
+        saveNote({ silent:true });
+      }, 5000);
+    }
+
+    async function saveNote({silent=false}={}){
+      const payload = {
+        title: $('#note-title').value.trim() || 'Untitled',
+        content: $('#editor').innerHTML,
+        isSecret: $('#is-secret').checked
+      };
+      if(payload.isSecret){
+        const p = $('#secret-pass').value.trim();
+        if(!currentNote._id && !p){ if(!silent) toast('Set a password for secret note'); return; }
+        if(p) payload.password = p; // allow updating password when provided
+      }
+
+      try{
+        let saved;
+        if(currentNote._id){
+          saved = await api(`/${currentNote._id}`, { method:'PUT', body: JSON.stringify(payload) });
+        }else{
+          saved = await api('', { method:'POST', body: JSON.stringify(payload) });
+          currentNote._id = saved._id;
+        }
+        $('#autosave-status').textContent = 'Autosave: saved ✓';
+        notes = await api(''); // refresh cache
+        if(!silent) toast('Saved');
+      }catch(e){
+        $('#autosave-status').textContent = 'Autosave: error';
+        if(!silent) toast('Save failed: '+e.message);
+      }
+    }
+
+    async function deleteCurrent(){
+      if(!currentNote || !currentNote._id){ toast('Nothing to delete'); return }
+      if(!confirm('Delete this note?')) return;
+      try{ await api(`/${currentNote._id}`, { method:'DELETE' }); toast('Deleted'); currentNote=null; show('#view-dashboard'); loadNotes(); }
+      catch(e){ toast('Delete failed: '+e.message) }
+    }
+
+    function exec(cmd, arg=null){ document.execCommand(cmd, false, arg); $('#editor').focus() }
+
+    // Text-to-Speech (Reading Mode)
+    function toggleRead(){
+      const synth = window.speechSynthesis;
+      if(isReading){ synth.cancel(); isReading=false; $('#btn-read').textContent='▶ Read'; return }
+      const text = $('#editor').innerText.trim();
+      if(!text){ toast('Nothing to read'); return }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = 1; u.pitch = 1; u.onend=()=>{ isReading=false; $('#btn-read').textContent='▶ Read' };
+      synth.speak(u); isReading=true; $('#btn-read').textContent='⏹ Stop';
+    }
+
+    // ==================== EVENTS ====================
+    $('#btn-dashboard').onclick = ()=>{ show('#view-dashboard'); loadNotes() };
+    $('#btn-new').onclick = ()=> newEditor();
+    $('#btn-save').onclick = ()=> saveNote();
+    $('#btn-delete').onclick = deleteCurrent;
+    $('#btn-back').onclick = ()=>{ show('#view-dashboard'); loadNotes() };
+    $('#btn-read').onclick = toggleRead;
+
+    $('#is-secret').onchange = (e)=>{ $('#secret-row').style.display = e.target.checked ? 'flex':'none' };
+
+    // Toolbar commands
+    $$('.toolbar .btn[data-cmd]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const cmd = b.getAttribute('data-cmd'); const arg = b.getAttribute('data-arg'); exec(cmd, arg);
+      })
+    });
+    $('#btn-clear').onclick = ()=>{ if(confirm('Clear editor content?')) $('#editor').innerHTML='' };
+
+    // Search & sort
+    $('#search').addEventListener('input', debounce(renderGrid, 150));
+    $('#sort').addEventListener('change', renderGrid);
+
+    // Grid actions (open/delete)
+    $('#grid').addEventListener('click', (e)=>{
+      const openId = e.target.getAttribute('data-open');
+      const delId = e.target.getAttribute('data-del');
+      if(openId){
+        const note = notes.find(n=>n._id===openId);
+        if(note.isSecret){ pendingOpenId = openId; openPwModal(); }
+        else{ openPublic(openId); }
+      }
+      if(delId){
+        if(confirm('Delete this note?')) api(`/${delId}`, { method:'DELETE' }).then(()=>{ toast('Deleted'); loadNotes() }).catch(err=>toast(err.message))
+      }
+    });
+
+    async function openPublic(id){
+      try{ const note = await api(`/${id}`, { method:'POST', body: JSON.stringify({}) }); openEditor(note); }
+      catch(e){ toast('Open failed: '+e.message) }
+    }
+
+    // Import / Export
+    $('#btn-export').onclick = ()=>{
+      const data = JSON.stringify(notes, null, 2);
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='bluediary-backup.json'; a.click(); URL.revokeObjectURL(url);
+    };
+    $('#importFile').addEventListener('change', async (e)=>{
+      const file = e.target.files[0]; if(!file) return; const text = await file.text();
+      try{ const arr = JSON.parse(text); if(!Array.isArray(arr)) throw new Error('Invalid JSON');
+        // naive import: recreate notes (public only for safety). You may extend to support secret import with password mapping.
+        for(const n of arr){
+          if(n.isSecret){ continue } // skip secret in demo import for safety
+          await api('', { method:'POST', body: JSON.stringify({ title:n.title, content:n.content||'', isSecret:false }) });
+        }
+        toast('Import complete'); loadNotes();
+      }catch(err){ toast('Import failed: '+err.message) }
+    });
+
+    // Modal esc
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && pwModal.classList.contains('show')) closePwModal() });
+
+    // Init
+    loadNotes();
+  </script></body>
+</html>
