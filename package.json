@@ -16,7 +16,8 @@
     "helmet": "^7.0.0",
     "morgan": "^1.10.0",
     "mongoose": "^7.5.0",
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
